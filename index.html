@@ -1,0 +1,1329 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#F1EEE2">
+<title>Gatekeeper Workbench · Cobalt Freight (synthetic prototype)</title>
+<meta name="description" content="Synthetic prototype of an AI employee workbench, inspired by public Ema marketing pages: AI employees draft IT and finance work, pause at risky steps for a human gate, and log everything. Synthetic data only, not affiliated with Ema.">
+<style>
+:root{
+  --paper:#F1EEE2; --card:#FCFBF5; --card-2:#F7F4E9;
+  --ink:#1F2430; --ink-2:#454E5C; --muted:#6E7684;
+  --line:#D9D4C2; --line-2:#E7E3D3;
+  --green:#1f8844; --green-dark:#186f38; --green-bg:#E7F2E9; --green-line:#C3E2CD; --green-soft:#a9d6b8;
+  --amber:#9a5b00; --amber-bg:#FBF0DA; --amber-line:#EBD9AE;
+  --red:#A93B2F; --red-bg:#F9E9E5; --red-line:#EAC6BE;
+  --blue:#3D5A8F; --blue-bg:#E9EEF7; --blue-line:#CBD8EC;
+  --slate-bg:#EDEBE0;
+  --radius:14px; --radius-s:10px;
+  --shadow:0 1px 2px rgba(31,36,48,.06), 0 10px 24px rgba(31,36,48,.08);
+  --font:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+html,body{margin:0;background:var(--paper);color:var(--ink);overflow-x:hidden}
+body{font-family:var(--font);font-size:16px;line-height:1.5}
+img,svg{display:block}
+button{font:inherit;color:inherit}
+.skip{position:absolute;left:-9999px;top:8px;z-index:200;background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none}
+.skip:focus{left:8px}
+:focus-visible{outline:3px solid var(--green);outline-offset:2px;border-radius:6px}
+a{color:var(--green-dark)}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:60;background:rgba(241,238,226,.94);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+.topbar-inner{max-width:1200px;margin:0 auto;padding:10px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.mark{width:34px;height:34px;border-radius:10px;background:var(--ink);color:#fff;display:grid;place-items:center;font-weight:800;font-size:16px;flex:none}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:17px;letter-spacing:.01em}
+.brand small{display:block;color:var(--muted);font-weight:500;font-size:12px;line-height:1.3}
+.nav{display:flex;gap:6px;margin-left:auto}
+.nav a{text-decoration:none;color:var(--ink-2);font-weight:600;font-size:15px;padding:10px 14px;border-radius:10px;border:1px solid transparent;min-height:44px;display:inline-flex;align-items:center;gap:8px}
+.nav a:hover{background:var(--card)}
+.nav a.on{background:var(--card);border-color:var(--line);color:var(--ink)}
+.badge{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--amber);color:#fff;font-size:12.5px;font-weight:800;display:inline-grid;place-items:center}
+.badge.zero{background:var(--slate-bg);color:var(--muted)}
+.resetbtn{margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--ink-2);font-weight:600;font-size:14px;border-radius:10px;padding:0 14px;min-height:44px;cursor:pointer}
+.resetbtn:hover{background:var(--card-2)}
+
+/* ---------- layout ---------- */
+main{max-width:1200px;margin:0 auto;padding:22px 18px 40px}
+.foot{max-width:1200px;margin:0 auto;padding:0 18px 34px;color:var(--muted);font-size:13.5px;line-height:1.6}
+.pagehead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:24px;margin:0;letter-spacing:-.01em;line-height:1.25}
+.lede{color:var(--muted);margin:4px 0 0;font-size:15px;max-width:640px}
+
+/* chips and pills */
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:5px 10px;border-radius:999px;border:1px solid transparent;white-space:nowrap}
+.pill .dot{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
+.st-drafting{background:var(--slate-bg);color:#5B6472;border-color:#DCD8C8}
+.st-needs{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-line)}
+.st-done{background:var(--green-bg);color:var(--green-dark);border-color:var(--green-line)}
+.st-rejected{background:var(--red-bg);color:var(--red);border-color:var(--red-line)}
+.st-escalated{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-line)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:4px 9px;border-radius:8px;background:var(--slate-bg);color:var(--ink-2);white-space:nowrap}
+.chip svg{width:14px;height:14px}
+.chip.green{background:var(--green-bg);color:var(--green-dark)}
+.chip.amber{background:var(--amber-bg);color:var(--amber)}
+.chip.red{background:var(--red-bg);color:var(--red)}
+.empchip{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px 4px 4px;font-weight:700;font-size:14px;min-height:34px}
+.avatar{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;color:#fff;flex:none}
+.avatar.lg{width:34px;height:34px;font-size:15px}
+.empchip small{color:var(--muted);font-weight:500;font-size:12.5px}
+
+/* ---------- queue ---------- */
+.needsyou{display:inline-flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;box-shadow:var(--shadow)}
+.needsyou .num{font-size:26px;font-weight:800;color:var(--amber);line-height:1}
+.needsyou .lbl{font-size:13.5px;color:var(--ink-2);font-weight:600;line-height:1.35}
+.buttonish{background:var(--green);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:14px;padding:0 16px;min-height:44px;cursor:pointer}
+.buttonish:hover{background:var(--green-dark)}
+.buttonish:disabled{opacity:.45;cursor:default}
+.buttonish.ghost{background:var(--card);color:var(--ink-2);border:1px solid var(--line)}
+.buttonish.ghost:hover{background:var(--card-2)}
+.buttonish.danger{background:var(--red);color:#fff}
+.buttonish.danger:hover{background:#8f2f25}
+.filters{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:14px}
+.filters select{appearance:none;font:inherit;font-size:15px;font-weight:600;color:var(--ink);background:var(--card) url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236E7684' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;border:1px solid var(--line);border-radius:10px;padding:0 34px 0 14px;min-height:44px;cursor:pointer}
+.filters select:hover{border-color:var(--green-soft)}
+.filternote{color:var(--muted);font-size:14px;margin-left:auto}
+.filternote b{color:var(--ink-2)}
+
+.qtable{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.qtable thead th{text-align:left;font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--card-2);padding:10px 14px;border-bottom:1px solid var(--line)}
+.qtable tbody td{padding:12px 14px;border-bottom:1px solid var(--line-2);vertical-align:middle;font-size:15px}
+.qtable tbody tr:last-child td{border-bottom:none}
+.qtable tbody tr{cursor:pointer;transition:background .12s}
+.qtable tbody tr:hover{background:var(--card-2)}
+.qtitle{font-weight:700;line-height:1.3}
+.qtitle .id{color:var(--muted);font-weight:600;font-size:13px}
+.qsub{color:var(--muted);font-size:13.5px;margin-top:2px}
+.attn{color:var(--amber);font-weight:700}
+.agentcell{display:inline-flex;align-items:center;gap:8px}
+.agentcell .nm{font-weight:700;font-size:14.5px}
+.agentcell .dp{color:var(--muted);font-size:12.5px}
+.agecell{color:var(--muted);font-size:13.5px;white-space:nowrap}
+
+.empty{background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);padding:44px 20px;text-align:center}
+.empty h2{margin:10px 0 4px;font-size:19px}
+.empty p{color:var(--muted);margin:0 0 18px;font-size:15px}
+.empty .bigic{width:52px;height:52px;margin:0 auto;border-radius:14px;background:var(--green-bg);color:var(--green-dark);display:grid;place-items:center}
+.empty .bigic svg{width:26px;height:26px}
+
+/* ---------- task view ---------- */
+.backlink{display:inline-flex;align-items:center;gap:8px;color:var(--ink-2);text-decoration:none;font-weight:600;font-size:15px;padding:8px 10px 8px 0;min-height:44px}
+.backlink:hover{color:var(--green-dark)}
+.backlink svg{width:16px;height:16px}
+.tvhead{margin:2px 0 16px}
+.tvhead .row1{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.tvhead h1{font-size:22px}
+.tvmeta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;color:var(--ink-2);font-size:14.5px}
+.tvmeta .sep{color:var(--line);font-size:16px}
+.attnbar{display:flex;align-items:center;gap:10px;background:var(--amber-bg);border:1px solid var(--amber-line);color:var(--amber);border-radius:var(--radius-s);padding:10px 14px;font-size:14.5px;font-weight:600;margin-top:12px}
+.attnbar svg{width:18px;height:18px;flex:none}
+
+.tv-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.card h2{margin:0 0 12px;font-size:16px;letter-spacing:-.01em}
+.card .sub{color:var(--muted);font-size:14px;margin:-6px 0 12px}
+.cardhead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.cardhead h2{margin:0}
+
+.requestbox{background:var(--card-2);border:1px solid var(--line-2);border-radius:var(--radius-s);padding:14px 16px;margin-bottom:12px}
+.requestbox .q{font-size:16.5px;font-weight:600;line-height:1.4}
+.requestbox .q::before{content:"\201C"}
+.requestbox .q::after{content:"\201D"}
+.requestbox .src{margin-top:8px;color:var(--muted);font-size:13.5px}
+.workingstrip{display:flex;align-items:center;gap:10px;background:var(--green-bg);border:1px solid var(--green-line);border-radius:var(--radius-s);padding:10px 14px;font-size:14.5px;color:var(--green-dark);margin-bottom:14px}
+.workingstrip b{font-weight:700}
+.workingstrip .pulse{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 1.4s infinite;flex:none}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* plan steps */
+.plan{list-style:none;margin:0;padding:0}
+.plan li{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line-2);align-items:flex-start}
+.plan li:last-child{border-bottom:none}
+.stepic{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;flex:none;margin-top:1px}
+.stepic svg{width:14px;height:14px}
+.stepic.done{background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green-line)}
+.stepic.current{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-line)}
+.stepic.waiting{background:var(--slate-bg);color:var(--muted);border:1px solid #E0DCCA}
+.stepic.error{background:var(--red-bg);color:var(--red);border:1px solid var(--red-line)}
+.stepic.risky{background:var(--amber);color:#fff;border:none}
+.stepmain{flex:1;min-width:0}
+.stepmain .sl{font-weight:600;font-size:15px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.stepmain .sn{color:var(--muted);font-size:13.5px;margin-top:2px}
+.steptag{font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);background:var(--slate-bg);border-radius:6px;padding:2px 7px}
+.steptag.risky{background:var(--amber-bg);color:var(--amber)}
+.steptag.flag{background:var(--red-bg);color:var(--red)}
+.flagline{display:flex;gap:8px;align-items:flex-start;background:var(--red-bg);border:1px solid var(--red-line);color:var(--red);border-radius:var(--radius-s);padding:9px 12px;margin-top:10px;font-size:14px;font-weight:600}
+.flagline svg{width:16px;height:16px;flex:none;margin-top:2px}
+
+/* gate */
+.gatewrap{position:relative}
+.scrim{display:none}
+.gate{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+.gate .ghead{display:flex;align-items:center;gap:10px;margin:0 0 4px;flex-wrap:wrap}
+.gate .ghead h2{font-size:16px;margin:0}
+.gate .policy{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;background:var(--slate-bg);border:1px solid #E0DCCA;color:var(--ink-2);border-radius:7px;padding:3px 8px;font-weight:600}
+.gate .gsub{color:var(--muted);font-size:13.5px;margin:0 0 14px}
+.grow{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;border-radius:var(--radius-s);margin-bottom:10px;font-size:14.5px;line-height:1.45}
+.grow .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;flex:none}
+.grow .ic svg{width:18px;height:18px}
+.grow b{display:block;font-size:13px;margin-bottom:2px}
+.grow.what{background:var(--card-2);border:1px solid var(--line-2)}
+.grow.what .ic{background:var(--slate-bg);color:var(--ink-2)}
+.grow.risk{background:var(--amber-bg);border:1px solid var(--amber-line)}
+.grow.risk .ic{background:#fff;color:var(--amber)}
+.grow.rec{background:var(--green-bg);border:1px solid var(--green-line)}
+.grow.rec .ic{background:#fff;color:var(--green-dark)}
+.editedchip{display:inline-flex;align-items:center;gap:7px;background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-line);font-size:13px;font-weight:700;border-radius:8px;padding:7px 11px;margin-bottom:12px}
+.editedchip svg{width:14px;height:14px}
+.gatebtns{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+.gatebtns .buttonish{flex:1;min-width:150px;justify-content:center}
+.editsheet{background:var(--card-2);border:1px solid var(--line);border-radius:var(--radius-s);padding:14px;margin-top:14px}
+.editsheet h3{margin:0 0 10px;font-size:14.5px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:13px;font-weight:700;color:var(--ink-2);margin-bottom:6px}
+.field select{appearance:none;font:inherit;font-size:15px;font-weight:600;width:100%;background:#fff url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236E7684' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center;border:1px solid var(--line);border-radius:10px;padding:0 34px 0 13px;min-height:44px;cursor:pointer}
+.field .hint{font-size:13px;color:var(--muted);margin-top:4px}
+.switchrow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;cursor:pointer}
+.switchrow .sw{width:40px;height:24px;border-radius:12px;background:#D8D4C4;position:relative;flex:none;transition:background .15s}
+.switchrow .sw .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;transition:left .15s;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.switchrow[aria-pressed="true"] .sw{background:var(--green)}
+.switchrow[aria-pressed="true"] .sw .knob{left:18px}
+.switchrow .swl{font-weight:600;font-size:14.5px}
+.switchrow .sws{color:var(--muted);font-size:13px}
+textarea.reason{width:100%;min-height:88px;font:inherit;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;resize:vertical}
+textarea.reason:focus{outline:3px solid var(--green);outline-offset:1px}
+.rejectnote{font-size:13.5px;color:var(--muted);margin:8px 0 0}
+
+/* outcome */
+.outcome .donebox{display:flex;gap:10px;align-items:flex-start;background:var(--green-bg);border:1px solid var(--green-line);color:var(--green-dark);border-radius:var(--radius-s);padding:12px 14px;font-weight:600;font-size:15px}
+.outcome .donebox svg{width:20px;height:20px;flex:none;margin-top:1px}
+.outcome .rejbox{display:flex;gap:10px;align-items:flex-start;background:var(--red-bg);border:1px solid var(--red-line);color:var(--red);border-radius:var(--radius-s);padding:12px 14px;font-weight:600;font-size:15px}
+.outcome .rejbox svg{width:20px;height:20px;flex:none;margin-top:1px}
+.slackreply{background:#fff;border:1px solid var(--line);border-radius:var(--radius-s);padding:14px;margin-top:12px}
+.slackreply .srhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.slackreply .srhead b{font-size:14.5px}
+.slackreply .srhead .ch{color:var(--muted);font-size:12.5px}
+.slackreply .srbody{font-size:14.5px;line-height:1.5;color:var(--ink)}
+.slackreply .srbody .ok{color:var(--green-dark);font-weight:700}
+.slackreply .drafttag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--muted);background:var(--slate-bg);border-radius:6px;padding:3px 8px;margin-top:10px}
+.errbox{background:var(--red-bg);border:1px solid var(--red-line);border-radius:var(--radius-s);padding:14px 16px}
+.errbox h3{margin:0 0 4px;color:var(--red);font-size:15.5px;display:flex;align-items:center;gap:8px}
+.errbox h3 svg{width:18px;height:18px;flex:none}
+.errbox p{margin:0 0 12px;color:var(--ink-2);font-size:14.5px}
+.workingnow{display:flex;gap:10px;align-items:flex-start;background:var(--slate-bg);border:1px solid #E0DCCA;border-radius:var(--radius-s);padding:12px 14px;font-size:14.5px;color:var(--ink-2)}
+.workingnow svg{width:18px;height:18px;flex:none;margin-top:2px}
+
+/* audit */
+.auditlist{list-style:none;margin:0;padding:0}
+.auditlist li{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--line-2);align-items:baseline;font-size:14.5px}
+.auditlist li:last-child{border-bottom:none}
+.auditlist .at{color:var(--muted);font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.auditlist .aw{font-weight:700;font-size:13px;white-space:nowrap}
+.auditlist .ax{flex:1;min-width:0;color:var(--ink)}
+.auditlist .ax b{font-weight:700}
+.auditlist .as{font-size:12px;color:var(--muted);background:var(--slate-bg);border-radius:6px;padding:2px 7px;white-space:nowrap}
+.auditlist .ah{color:var(--green-dark);font-weight:700}
+.auditlist .ar{color:var(--red);font-weight:700}
+.auditlist .aa{color:var(--amber);font-weight:700}
+
+/* audit view */
+.scrollbox{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.atable{width:100%;border-collapse:separate;border-spacing:0;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);min-width:760px}
+.atable th{text-align:left;font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);background:var(--card-2);padding:10px 14px;border-bottom:1px solid var(--line)}
+.atable td{padding:10px 14px;border-bottom:1px solid var(--line-2);font-size:14.5px;vertical-align:top}
+.atable tr:last-child td{border-bottom:none}
+
+/* outcomes */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px}
+.kpi .kv{font-size:28px;font-weight:800;letter-spacing:-.02em;line-height:1.1}
+.kpi .kv small{font-size:14px;color:var(--muted);font-weight:600}
+.kpi .kl{color:var(--muted);font-size:13.5px;margin-top:4px;font-weight:600}
+.kpi .kic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;margin-bottom:10px}
+.kpi .kic svg{width:17px;height:17px}
+.kpi.green .kic{background:var(--green-bg);color:var(--green-dark)}
+.kpi.amber .kic{background:var(--amber-bg);color:var(--amber)}
+.kpi.blue .kic{background:var(--blue-bg);color:var(--blue)}
+.sessionstrip{display:flex;gap:20px;flex-wrap:wrap;background:var(--green-bg);border:1px solid var(--green-line);color:var(--green-dark);border-radius:var(--radius);padding:13px 18px;font-size:14.5px;font-weight:600;margin-bottom:16px}
+.sessionstrip span{display:inline-flex;align-items:center;gap:8px}
+.sessionstrip b{font-size:18px}
+.gatereasons .bar{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.gatereasons .bar .nm{width:300px;flex:none;font-size:14px;font-weight:600}
+.gatereasons .bar .track{flex:1;height:12px;background:var(--slate-bg);border-radius:6px;overflow:hidden}
+.gatereasons .bar .fill{height:100%;background:var(--amber);border-radius:6px}
+.gatereasons .bar .ct{width:44px;flex:none;text-align:right;font-size:14px;font-weight:800;color:var(--ink-2)}
+
+/* toasts */
+.toasts{position:fixed;top:64px;right:14px;z-index:120;display:flex;flex-direction:column;gap:8px;max-width:min(360px,calc(100vw - 28px))}
+.toasts .toast{pointer-events:auto}
+.toast{background:var(--ink);color:#fff;border-radius:12px;padding:12px 16px;font-size:14.5px;font-weight:600;box-shadow:var(--shadow);display:flex;gap:10px;align-items:flex-start;animation:tin .18s ease-out}
+.toast svg{width:17px;height:17px;flex:none;margin-top:1px;color:var(--green-soft)}
+@keyframes tin{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+
+/* ---------- phone ---------- */
+@media (max-width:960px){
+  .tv-grid{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .topbar-inner{padding:8px 12px}
+  .brand small{display:none}
+  .nav a{font-size:14px;padding:8px 10px}
+  main{padding:16px 12px 32px}
+  .foot{padding:0 12px 28px}
+  h1{font-size:21px}
+  /* queue rows become cards */
+  .qtable{border:none;box-shadow:none;background:transparent;border-radius:0}
+  .qtable thead{display:none}
+  .qtable tbody tr{display:block;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 14px 12px;margin-bottom:12px}
+  .qtable tbody tr:hover{background:var(--card)}
+  .qtable tbody td{display:block;border:none;padding:5px 0}
+  .qtable td[data-lbl]:before{content:attr(data-lbl);display:block;font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px}
+  .qtable .qrow-main{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:0 0 4px}
+  .qtable .qrow-meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;padding-top:8px;border-top:1px dashed var(--line-2)}
+  .kpis{grid-template-columns:1fr 1fr;gap:10px}
+  /* gate becomes bottom sheet */
+  .gatewrap{padding-bottom:env(safe-area-inset-bottom)}
+  .gate{position:fixed;left:0;right:0;bottom:0;z-index:100;border-radius:18px 18px 0 0;border-left:none;border-right:none;border-bottom:none;max-height:86vh;overflow-y:auto;padding:18px 16px 20px}
+  .scrim{display:none;position:fixed;inset:0;background:rgba(31,36,48,.45);z-index:90}
+  body.gate-open .scrim{display:block}
+  body.gate-open{overflow:hidden}
+  .gatereasons .bar .nm{width:110px;font-size:13px}
+  .sessionstrip{gap:14px}
+  .gatebtns .buttonish{min-width:0;flex:1 1 100%}
+  .qtable .csvt{display:none}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><span class="mark">G</span><span>Gatekeeper Workbench <small>Cobalt Freight · demo tenant · synthetic data</small></span></div>
+    <nav class="nav" aria-label="Sections">
+      <a href="#/queue" data-nav="queue">Queue <span class="badge" id="navBadge">6</span></a>
+      <a href="#/audit" data-nav="audit">Audit</a>
+      <a href="#/outcomes" data-nav="outcomes">Outcomes</a>
+    </nav>
+    <button class="resetbtn" id="resetBtn" type="button">Reset demo</button>
+  </div>
+</header>
+
+<main id="main"></main>
+
+<div class="scrim" id="scrim" aria-hidden="true"></div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<footer class="foot">
+  <p>Prototype inspired by public Ema marketing pages. Not affiliated with Ema. Synthetic data.</p>
+</footer>
+
+<script>
+"use strict";
+(function(){
+/* ============================================================
+   Gatekeeper Workbench — synthetic prototype
+   AI employees draft IT / finance / HR work, pause at risky
+   steps for a human gate, and log everything.
+   All data is synthetic. Cobalt Freight is a fake company.
+   ============================================================ */
+
+var $ = function(id){ return document.getElementById(id); };
+var STORE_KEY = "ema-gatekeeper-workbench-v1";
+var fmtMoney = function(n){ return "$" + n.toLocaleString("en-US", {minimumFractionDigits:2}); };
+
+var ICONS = {
+  lock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10.5" width="16" height="10" rx="2.4"/><path d="M8 10.5V7.8a4 4 0 0 1 8 0v2.7"/><circle cx="12" cy="15.3" r="1.4" fill="currentColor" stroke="none"/></svg>',
+  check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>',
+  circle: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="12" cy="12" r="8.2"/></svg>',
+  alert: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.2L22 20H2L12 3.2z"/><path d="M12 10v4.6"/><circle cx="12" cy="17.4" r=".4" fill="currentColor"/></svg>',
+  retry: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 12a8.5 8.5 0 1 1-2.5-6"/><path d="M20.5 3.5V7h-3.5"/></svg>',
+  slack: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M9.6 3.6a1.9 1.9 0 1 0-1.9 1.9h1.9V3.6z"/><path d="M14.4 3.6a1.9 1.9 0 1 1 1.9 1.9h-1.9V3.6z"/><path d="M14.4 9.6a1.9 1.9 0 1 1 0 3.8 1.9 1.9 0 0 1 0-3.8z"/><path d="M20.4 9.6a1.9 1.9 0 1 0-1.9 1.9h1.9V9.6z"/><path d="M20.4 14.4a1.9 1.9 0 1 1-1.9 1.9v-1.9h1.9z"/><path d="M14.4 20.4a1.9 1.9 0 1 1-1.9-1.9h1.9v1.9z"/><path d="M14.4 14.4a1.9 1.9 0 1 0 0-3.8z"/><path d="M9.6 20.4a1.9 1.9 0 1 1-1.9-1.9h1.9v1.9z"/></svg>',
+  teams: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 7.5h8a2 2 0 0 1 2 2v7a3.5 3.5 0 0 1-3.5 3.5H8.5A3.5 3.5 0 0 1 5 16.5v-9z"/><path d="M9 4a2.4 2.4 0 1 0 0 4.8A2.4 2.4 0 0 0 9 4z"/><path d="M15 7.5h1.8A2.2 2.2 0 0 1 19 9.7v.3a2.5 2.5 0 0 1-2.5 2.5H15"/><path d="M19 8.2A2 2 0 1 0 19 4.4a2 2 0 0 0 0 3.8z"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.2" y="5" width="17.6" height="14" rx="2.2"/><path d="M3.8 7l8.2 6 8.2-6"/></svg>',
+  voice: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.8" width="6" height="11.4" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v3.2"/><path d="M8.6 21.2h6.8"/></svg>',
+  download: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M6.5 10.5L12 16l5.5-5.5"/><path d="M4 20h16"/></svg>',
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>',
+  clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.4V12l3 2"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7.5 3v5.2c0 4.6-3.2 8.1-7.5 9.8-4.3-1.7-7.5-5.2-7.5-9.8V6L12 3z"/><path d="M9 12l2.2 2.2L15.5 9.8"/></svg>',
+  spark: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.5l1.9 4.6 4.6 1.9-4.6 1.9L12 16.5l-1.9-4.6-4.6-1.9 4.6-1.9L12 3.5z"/><path d="M19 15.5l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9.9-2.1z"/></svg>',
+  funnel: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h16l-6.4 7.4v5.4l-3.2 1.8v-7.2L4 5z"/></svg>',
+  pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1.1-4.2L16.5 4.4a2 2 0 0 1 2.8 0l.3.3a2 2 0 0 1 0 2.8L8.2 18.9 4 20z"/><path d="M14.6 6.4l3 3"/></svg>',
+  ban: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M5.6 5.6l12.8 12.8"/></svg>',
+  doc: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3.5h8l4.5 4.5V20.5H6v-17z"/><path d="M14 3.5v4.5h4.5"/><path d="M9 12h6.5M9 15.5h6.5"/></svg>',
+  bolt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round" aria-hidden="true"><path d="M13 2.5L4.5 13.5H11l-1 8L18.5 10H12l1-7.5z"/></svg>'
+};
+
+var AI = {
+  ava:  { name:"Ava",  dept:"IT help desk",        color:"#2f6fb5", letter:"A" },
+  finn: { name:"Finn", dept:"Accounts payable",    color:"#1f8844", letter:"F" },
+  hana: { name:"Hana", dept:"HR onboarding",       color:"#8a5bb0", letter:"H" }
+};
+
+var CHAN_ICON = { Slack:"slack", Teams:"teams", Email:"mail", Voice:"voice" };
+
+/* ---------- seed data (all synthetic) ---------- */
+/* plan statuses: done | current | waiting | error */
+var SEED_TASKS = [
+{ id:"T-1042", dept:"IT", emp:"ava", channel:"Slack", requester:"Priya Nair · Finance",
+  request:"Admin access to Billing dashboard", quote:"Can I get admin on the Billing dashboard for quarter-end close? I need it through Friday.",
+  age:"32m", status:"needs_approval", attention:false,
+  plan:[
+    {label:"Check role", src:"Identity system", status:"done"},
+    {label:"Check manager approval", src:"Directory", status:"done"},
+    {label:"Check policy", src:"Policy service", status:"done"},
+    {label:"Grant admin access", src:"Identity system", status:"current", risky:true},
+    {label:"Set expiry", src:"Identity system", status:"waiting"},
+    {label:"Reply to requester in Slack", src:"Slack", status:"waiting"}
+  ],
+  gate:{
+    policy:"P-IT-12",
+    what:"Grant Admin · Billing dashboard to priya.nair@cobalt.freight",
+    why:"Admin access is a privileged grant. Policy P-IT-12 requires a human approver for admin roles, and permanent admin needs a separate security review. Her role is Finance Analyst — Admin on Billing exceeds the standard role.",
+    rec:"Grant 7-day access, not permanent. Quarter-end close runs through Friday.",
+    fields:[{key:"expiryDays", label:"Access duration", type:"select", options:[[1,"1 day"],[3,"3 days"],[7,"7 days — AI recommendation"],[14,"14 days"],[30,"30 days"]], value:7, rec:7}]
+  },
+  reply:{ch:"#it-helpdesk", to:"Priya Nair", ok:true,
+    text:"Done — admin access to the Billing dashboard is active for Priya Nair. Expires in 7 days. Need it longer? Just ask before Friday."}
+},
+{ id:"T-1071", dept:"IT", emp:"ava", channel:"Teams", requester:"Vishal Mehta · Operations",
+  request:"MFA reset for dispatch tablet", quote:"The dispatch tablet is locked out after a software update. Can we reset MFA so the night shift can sign in?",
+  age:"9m", status:"drafting", attention:true,
+  plan:[
+    {label:"Verify identity", src:"Identity system", status:"error"},
+    {label:"Reset MFA", src:"Identity system", status:"waiting"},
+    {label:"Reply on Teams", src:"Teams", status:"waiting"}
+  ],
+  reply:{ch:"#it-helpdesk", to:"Vishal Mehta", ok:true,
+    text:"MFA reset for the dispatch tablet is done. A new activation code is on its way to your work phone for the night shift to sign in."}
+},
+{ id:"T-1050", dept:"IT", emp:"ava", channel:"Email", requester:"Rachel Kim · Sales",
+  request:"Laptop setup for remote hire", quote:"Our new account executive starts Monday and works remote. Can we get a laptop shipped and accounts provisioned?",
+  age:"47m", status:"drafting", attention:false,
+  plan:[
+    {label:"Check inventory", src:"Ticket tool", status:"done"},
+    {label:"Draft provisioning plan", src:"Workbench", status:"current"},
+    {label:"Order laptop", src:"Ticket tool", status:"waiting"},
+    {label:"Create accounts", src:"Identity system", status:"waiting"}
+  ]},
+{ id:"T-1005", dept:"IT", emp:"ava", channel:"Slack", requester:"Marcus Diaz · Dispatch",
+  request:"Unlock account (3 failed sign-ins)", quote:"Locked out of my account after three wrong passwords. Can you unlock it?",
+  age:"1h 20m", status:"done", attention:false,
+  plan:[
+    {label:"Verify identity", src:"Identity system", status:"done"},
+    {label:"Check policy", src:"Policy service", status:"done"},
+    {label:"Unlock account", src:"Identity system", status:"done"},
+    {label:"Reply in Slack", src:"Slack", status:"done"}
+  ],
+  reply:{ch:"#it-helpdesk", to:"Marcus Diaz", ok:true,
+    text:"Account unlocked. I've also reset the password hint. Reach out if it happens again — usually a typo in the password manager."}
+},
+{ id:"T-1012", dept:"IT", emp:"ava", channel:"Slack", requester:"Theo Grant · Operations",
+  request:"VPN access for night-shift dispatchers", quote:"The night shift needs VPN on the ops-vpn-night group — six dispatchers. They start Monday.",
+  age:"58m", status:"needs_approval", attention:false,
+  plan:[
+    {label:"Check role for 6 accounts", src:"Identity system", status:"done"},
+    {label:"Check policy", src:"Policy service", status:"done"},
+    {label:"Add to ops-vpn-night group", src:"Identity system", status:"current", risky:true},
+    {label:"Reply in Slack", src:"Slack", status:"waiting"}
+  ],
+  gate:{
+    policy:"P-IT-07",
+    what:"Add 6 dispatcher accounts to VPN group “ops-vpn-night”",
+    why:"Group-wide network access changes are outside Ava's self-serve scope. Policy P-IT-07 requires an IT approver before adding accounts to a VPN group.",
+    rec:"Grant 30-day access and audit the first sign-ins before renewing.",
+    fields:[{key:"duration", label:"Access duration", type:"select", options:[[30,"30 days — AI recommendation"],[90,"90 days"],[180,"180 days"]], value:30, rec:30}]
+  },
+  reply:{ch:"#it-helpdesk", to:"Theo Grant", ok:true,
+    text:"Night-shift dispatchers are on ops-vpn-night for 30 days. I'll audit first sign-ins before we renew."}
+},
+{ id:"T-1022", dept:"IT", emp:"ava", channel:"Slack", requester:"Dana Foster · Design",
+  request:"Figma license request", quote:"Can we get one more Figma seat for the new contractor?",
+  age:"3h", status:"done", attention:false,
+  plan:[
+    {label:"Check license pool", src:"Ticket tool", status:"done"},
+    {label:"Check budget", src:"Accounting system", status:"done"},
+    {label:"Assign seat", src:"Ticket tool", status:"done"},
+    {label:"Reply in Slack", src:"Slack", status:"done"}
+  ],
+  reply:{ch:"#it-helpdesk", to:"Dana Foster", ok:true,
+    text:"Done — the contractor has a Figma seat for the next 30 days."}
+},
+{ id:"T-1008", dept:"IT", emp:"ava", channel:"Slack", requester:"Ben Carter · IT",
+  request:"Phishing report triage", quote:"A vendor invoice email looks like phishing — it asks to update payment details. Check it?",
+  age:"4h", status:"escalated", attention:false,
+  plan:[
+    {label:"Scan links and attachments", src:"Ticket tool", status:"done"},
+    {label:"Check sender reputation", src:"Email", status:"done"},
+    {label:"Hand to security ops", src:"Workbench", status:"done", risky:true}
+  ],
+  escalation:"Handed to Security Ops (S-OPS-2) — beyond Ava's scope. Email blocked for the whole fleet."},
+{ id:"T-1019", dept:"IT", emp:"ava", channel:"Voice", requester:"Elena Ruiz · HR",
+  request:"Account provisioning for new-hire batch", quote:"(voicemail) Six new hires start with the warehouse team on Monday — please provision accounts.",
+  age:"2h", status:"drafting", attention:false,
+  plan:[
+    {label:"Parse request from voicemail", src:"Workbench", status:"done"},
+    {label:"Match to HR records", src:"HR system", status:"done"},
+    {label:"Draft provisioning plan", src:"Workbench", status:"current"},
+    {label:"Create accounts", src:"Identity system", status:"waiting"}
+  ]},
+{ id:"T-1033", dept:"IT", emp:"ava", channel:"Email", requester:"Grace Liu · Compliance",
+  request:"Hardware return for departing employee", quote:"Former employee left the company — coordinate the laptop and badge return.",
+  age:"1d", status:"done", attention:false,
+  plan:[
+    {label:"Check asset records", src:"Ticket tool", status:"done"},
+    {label:"Create return ticket", src:"Ticket tool", status:"done"},
+    {label:"Reply to requester", src:"Email", status:"done"}
+  ],
+  reply:{ch:"email", to:"Grace Liu", ok:true,
+    text:"Return label and prepaid box are on the way to the employee's address. Access was revoked at 7:00 AM."}
+},
+{ id:"T-1015", dept:"IT", emp:"ava", channel:"Email", requester:"IT fleet · managed",
+  request:"Wi-Fi certificate renewal push", quote:"Scheduled: renew device certificates for the dispatch fleet before the March expiry.",
+  age:"2d", status:"done", attention:false,
+  plan:[
+    {label:"List fleet devices", src:"Identity system", status:"done"},
+    {label:"Renew certificates", src:"Identity system", status:"done"},
+    {label:"Post summary", src:"Ticket tool", status:"done"}
+  ]},
+{ id:"T-1133", dept:"Finance", emp:"finn", channel:"Email", requester:"AP inbox · Meridian Logistics",
+  request:"Approve INV-2208 — Meridian Logistics", quote:"Invoice INV-2208 for $18,900.00, net-30, received this morning from Meridian Logistics.",
+  age:"14m", status:"needs_approval", attention:false,
+  plan:[
+    {label:"Match PO", src:"Accounting system", status:"done"},
+    {label:"Match receipt", src:"Accounting system", status:"done"},
+    {label:"Check auto-pay limit", src:"Policy service", status:"done", flag:"Above the $10,000.00 auto-pay limit — $18,900.00"},
+    {label:"Check for duplicates", src:"Accounting system", status:"done", flag:"Possible duplicate of INV-2207 (same vendor, $18,849.12)"},
+    {label:"Pay invoice", src:"Accounting system", status:"current", risky:true},
+    {label:"Reply to vendor", src:"Email", status:"waiting"}
+  ],
+  gate:{
+    policy:"P-FIN-03",
+    what:"Pay "+fmtMoney(18900)+" to Meridian Logistics (INV-2208)",
+    why:"Payments over $10,000.00 need a finance approver (P-FIN-03). Finn also flagged a possible duplicate: INV-2207 from the same vendor is within 0.5% of this amount and posted last month.",
+    rec:"Do not pay yet — confirm INV-2208 is a separate purchase, not a re-sent INV-2207.",
+    fields:[{key:"pay", label:"Payment decision", type:"select", options:[["hold","Hold payment until duplicate check completes — AI recommendation"],["now","Pay now — I confirmed INV-2208 is separate"]], value:"hold", rec:"hold"}]
+  },
+  reply:{ch:"email", to:"Meridian Logistics (draft)", ok:false,
+    text:"Thanks — we're holding INV-2208 while our team confirms it isn't a duplicate of INV-2207 already on file. We'll release payment as soon as that's cleared."}
+},
+{ id:"T-1102", dept:"Finance", emp:"finn", channel:"Teams", requester:"Sam Okafor · Field Ops",
+  request:"Expense anomaly — 3 same-day receipts", quote:"Three receipts over $250 submitted the same day from a field site visit. Flagged by the matching check.",
+  age:"22m", status:"needs_approval", attention:false,
+  plan:[
+    {label:"Match receipts to trip", src:"Accounting system", status:"done"},
+    {label:"Check same-day rule", src:"Policy service", status:"done", flag:"Three receipts over $250.00 on the same day"},
+    {label:"Submit reimbursement", src:"Accounting system", status:"current", risky:true},
+    {label:"Reply to employee", src:"Teams", status:"waiting"}
+  ],
+  gate:{
+    policy:"P-FIN-05",
+    what:"Reimburse "+fmtMoney(268.5)+" to Sam Okafor",
+    why:"Same-day receipts over $250.00 each need a finance look before reimbursement (P-FIN-05). The trip record matches, but the policy still requires a human check.",
+    rec:"Reimburse in full and ask for itemized receipts to stay on file.",
+    fields:[{key:"mode", label:"Reimbursement", type:"select", options:[["full","Reimburse $"+(268.5).toFixed(2)+" — AI recommendation"],["hold","Hold until itemized receipts arrive"]], value:"full", rec:"full"}]
+  },
+  reply:{ch:"teams", to:"Sam Okafor", ok:true,
+    text:"Reimbursement of $268.50 is submitted. Please keep the itemized receipts on file for the quarter-end audit."}
+},
+{ id:"T-1108", dept:"Finance", emp:"finn", channel:"Email", requester:"AP inbox · Harbor Freight Lines",
+  request:"Update vendor bank details", quote:"Harbor Freight Lines sent a signed letter asking to switch payout account to ••••4821.",
+  age:"41m", status:"needs_approval", attention:false,
+  plan:[
+    {label:"Check signed letter on file", src:"Vendor registry", status:"done"},
+    {label:"Check change policy", src:"Policy service", status:"done"},
+    {label:"Update payout account", src:"Accounting system", status:"current", risky:true},
+    {label:"Reply to vendor", src:"Email", status:"waiting"}
+  ],
+  gate:{
+    policy:"P-FIN-08",
+    what:"Change payout account for Harbor Freight Lines to ••••4821",
+    why:"External bank detail changes are a classic payment-fraud vector. Policy P-FIN-08 requires a finance approver and a signed letter on file before the account changes.",
+    rec:"Approve — the signed letter (received 8:40 AM) matches the letterhead on file.",
+    fields:[{key:"notify", label:"Also email the finance lead a change notice", type:"toggle", value:false, rec:false}]
+  },
+  reply:{ch:"email", to:"Harbor Freight Lines (draft)", ok:true,
+    text:"Payout account updated to ••••4821 as requested. Please allow 5 business days for the change to apply."}
+},
+{ id:"T-1120", dept:"Finance", emp:"finn", channel:"Email", requester:"Ingrid Hsu · Accounting",
+  request:"Vendor statement reconciliation", quote:"September statement from ArrowCorp — 6 open invoices to reconcile.",
+  age:"5h", status:"done", attention:false,
+  plan:[
+    {label:"Pull statement", src:"Vendor registry", status:"done"},
+    {label:"Match 6 invoices", src:"Accounting system", status:"done"},
+    {label:"Flag 1 open PO mismatch", src:"Accounting system", status:"done"},
+    {label:"Post summary", src:"Email", status:"done"}
+  ]},
+{ id:"T-1114", dept:"Finance", emp:"finn", channel:"Email", requester:"AP inbox · warehouse supplies",
+  request:"PO match for warehouse supplies", quote:"Invoice from BoxCo for warehouse supplies — need PO match before payment.",
+  age:"6h", status:"done", attention:false,
+  plan:[
+    {label:"Match PO-3381", src:"Accounting system", status:"done"},
+    {label:"Check received quantity", src:"Accounting system", status:"done"},
+    {label:"Queue for payment", src:"Accounting system", status:"done"}
+  ]},
+{ id:"T-1105", dept:"Finance", emp:"finn", channel:"Email", requester:"AP inbox · FreightWorks",
+  request:"Manual payment request — no PO", quote:"FreightWorks asks for a one-off payment of $3,400 for an emergency haul with no PO attached.",
+  age:"5h", status:"rejected", attention:false,
+  plan:[
+    {label:"Look up PO", src:"Accounting system", status:"done"},
+    {label:"Check policy", src:"Policy service", status:"done"},
+    {label:"Reject — no PO", src:"Accounting system", status:"done", risky:true}
+  ],
+  rejectReason:"No PO on file. Policy P-FIN-02 requires a PO for payments over $2,000.",
+  reply:{ch:"email", to:"FreightWorks (draft)", ok:false,
+    text:"We can't process this payment without a purchase order. Please route the request through Procurement and we'll pick it up right away."}
+},
+{ id:"T-1088", dept:"Finance", emp:"finn", channel:"Voice", requester:"Leo Santos · Treasury",
+  request:"Recurring payment failed", quote:"(voicemail) The monthly SaaS payment for the analytics platform failed — card on file expired.",
+  age:"3h", status:"escalated", attention:false,
+  plan:[
+    {label:"Check payment record", src:"Accounting system", status:"done"},
+    {label:"Check card on file", src:"Accounting system", status:"done"},
+    {label:"Hand to treasury", src:"Workbench", status:"done", risky:true}
+  ],
+  escalation:"Handed to Treasury (TRE-9) — card changes are outside Finn's scope."},
+{ id:"T-1130", dept:"Finance", emp:"finn", channel:"Teams", requester:"Ingrid Hsu · Accounting",
+  request:"Month-end prep — open PO sweep", quote:"Sweep open POs older than 90 days before month-end close.",
+  age:"1h", status:"drafting", attention:false,
+  plan:[
+    {label:"Pull open PO list", src:"Accounting system", status:"done"},
+    {label:"Sweep 90-day POs", src:"Accounting system", status:"current"},
+    {label:"Post findings", src:"Teams", status:"waiting"}
+  ]},
+{ id:"T-1210", dept:"HR", emp:"hana", channel:"Slack", requester:"Jordan Blake · Warehouse",
+  request:"Onboarding packet for new warehouse lead", quote:"New warehouse lead starts Monday — need the onboarding packet and badge request.",
+  age:"26m", status:"drafting", attention:false,
+  plan:[
+    {label:"Pull offer details", src:"HR system", status:"done"},
+    {label:"Draft onboarding packet", src:"Workbench", status:"current"},
+    {label:"Request badge", src:"Ticket tool", status:"waiting"},
+    {label:"Send welcome email", src:"Email", status:"waiting"}
+  ]},
+{ id:"T-1217", dept:"HR", emp:"hana", channel:"Teams", requester:"Nakita Chen · Field Ops",
+  request:"Extend contractor access 90 days", quote:"The project got extended — Nakita's contractor access should follow the new PO through end of year.",
+  age:"1h", status:"needs_approval", attention:false,
+  plan:[
+    {label:"Check PO extension", src:"Accounting system", status:"done"},
+    {label:"Check contractor policy", src:"Policy service", status:"done"},
+    {label:"Extend access", src:"Identity system", status:"current", risky:true},
+    {label:"Reply on Teams", src:"Teams", status:"waiting"}
+  ],
+  gate:{
+    policy:"P-HR-03",
+    what:"Extend Nakita Chen's contractor access by 90 days",
+    why:"Contractor extensions over 30 days need HR approval (P-HR-03). The new PO is on file and matches the request.",
+    rec:"Extend 90 days to match the purchase order term.",
+    fields:[{key:"days", label:"Extension length", type:"select", options:[[30,"30 days"],[90,"90 days — AI recommendation"],[180,"180 days"]], value:90, rec:90}]
+  },
+  reply:{ch:"teams", to:"Nakita Chen", ok:true,
+    text:"Access extended 90 days to match the new PO. Your badges and logins keep working through then."}
+},
+{ id:"T-1202", dept:"HR", emp:"hana", channel:"Slack", requester:"Sofia Marino · Support",
+  request:"Benefits change (open enrollment)", quote:"Switching from PPO to HDHP for next year — form submitted via the portal.",
+  age:"8h", status:"done", attention:false,
+  plan:[
+    {label:"Validate form", src:"HR system", status:"done"},
+    {label:"Check plan eligibility", src:"Policy service", status:"done"},
+    {label:"Confirm change", src:"HR system", status:"done"},
+    {label:"Reply in Slack", src:"Slack", status:"done"}
+  ],
+  reply:{ch:"#hr-onboarding", to:"Sofia Marino", ok:true,
+    text:"Confirmed — you're on the HDHP plan for next year. Your card arrives by the 15th."}
+},
+{ id:"T-1205", dept:"HR", emp:"hana", channel:"Email", requester:"HR inbox · background checks",
+  request:"Background check follow-up", quote:"Check on the background check status for the new finance hire — vendor has been quiet.",
+  age:"1d 4h", status:"done", attention:false,
+  plan:[
+    {label:"Check vendor status", src:"Vendor registry", status:"done"},
+    {label:"Send one reminder", src:"Email", status:"done"},
+    {label:"Reply to HR", src:"Email", status:"done"}
+  ]},
+{ id:"T-1222", dept:"HR", emp:"hana", channel:"Voice", requester:"HR inbox · onboarding",
+  request:"I-9 document collection reminders", quote:"(voicemail) Two new hires still haven't submitted I-9 documents. Please send reminders.",
+  age:"2h", status:"drafting", attention:false,
+  plan:[
+    {label:"List missing documents", src:"HR system", status:"done"},
+    {label:"Draft reminders", src:"Workbench", status:"current"},
+    {label:"Send reminders", src:"Email", status:"waiting"}
+  ]},
+{ id:"T-1219", dept:"HR", emp:"hana", channel:"Teams", requester:"Yuki Tanaka · Engineering",
+  request:"Exit checklist for departing engineer", quote:"An engineer is leaving Friday — run the exit checklist and coordinate the handoff.",
+  age:"11h", status:"done", attention:false,
+  plan:[
+    {label:"Run exit checklist", src:"HR system", status:"done"},
+    {label:"Schedule handoff", src:"Workbench", status:"done"},
+    {label:"Post summary", src:"Teams", status:"done"}
+  ]},
+{ id:"T-1208", dept:"HR", emp:"hana", channel:"Slack", requester:"Aisha Bello · Warehouse",
+  request:"Sick leave request", quote:"Out sick today and tomorrow — filed in the portal. Can you confirm it's tracked?",
+  age:"4h", status:"done", attention:false,
+  plan:[
+    {label:"Check leave balance", src:"Payroll system", status:"done"},
+    {label:"Track in calendar", src:"HR system", status:"done"},
+    {label:"Reply in Slack", src:"Slack", status:"done"}
+  ],
+  reply:{ch:"#hr-onboarding", to:"Aisha Bello", ok:true,
+    text:"Tracked — you're set for today and tomorrow. Get well soon."}
+}
+];
+
+function seedAudit(task){
+  var emp = AI[task.emp];
+  var t = [];
+  t.push({ t:task.age+" ago", who:emp.name, what:"Opened request from "+task.channel, src:task.channel, kind:"" });
+  if (task.status === "needs_approval" || task.status === "done" || task.status === "rejected" || task.status === "escalated") {
+    t.push({ t:task.age+" ago", who:emp.name, what:"Drafted a "+task.plan.length+"-step plan", src:"Workbench", kind:"" });
+  }
+  task.plan.forEach(function(s, i){
+    if (s.status === "done") {
+      var act = s.src === "Workbench" ? "Finished: "+s.label : "Checked: "+s.label;
+      t.push({ t:task.age+" ago", who:emp.name, what:act, src:s.src, kind:"" });
+    }
+  });
+  return t;
+}
+
+var SEED_AUDIT = [
+  { t:"8:02 AM", task:"T-1042", who:"Ava",   what:"Checked policy P-IT-12 — admin grant needs a human approver", src:"Policy service", kind:"" },
+  { t:"8:05 AM", task:"T-1042", who:"Ava",   what:"Plan paused at step 4 (grant admin access) — waiting on you", src:"Workbench", kind:"gate" },
+  { t:"8:09 AM", task:"T-1071", who:"Ava",   what:"Identity system did not respond — 2 retries failed", src:"Identity system", kind:"aa" },
+  { t:"8:22 AM", task:"T-1133", who:"Finn",  what:"Flagged INV-2208 as possible duplicate of INV-2207", src:"Accounting system", kind:"aa" },
+  { t:"8:31 AM", task:"T-1133", who:"Finn",  what:"Payment over $10,000 limit — plan paused at step 5", src:"Policy service", kind:"gate" },
+  { t:"8:44 AM", task:"T-1108", who:"Finn",  what:"Verified signed letter for bank change on file", src:"Vendor registry", kind:"" },
+  { t:"8:50 AM", task:"T-1217", who:"Hana",  what:"Contractor extension over 30 days — paused for HR approval", src:"Policy service", kind:"gate" },
+  { t:"9:02 AM", task:"T-1105", who:"Finn",  what:"Rejected manual payment — no PO on file (P-FIN-02)", src:"Policy service", kind:"gate" },
+  { t:"9:14 AM", task:"T-1008", who:"Ava",   what:"Escalated phishing report to Security Ops", src:"Workbench", kind:"aa" },
+  { t:"9:26 AM", task:"T-1015", who:"Ava",   what:"Renewed 74 fleet certificates", src:"Identity system", kind:"" }
+];
+
+var BASELINE = {
+  aiOnly: 84, withGate: 31, planChanged: 6, avgClose: "22m",
+  reasons: [
+    { name:"Payment over $10,000 auto-pay limit", count:18 },
+    { name:"Admin or privileged access",           count:14 },
+    { name:"External bank detail change",          count:9 },
+    { name:"Contractor access extension",          count:5 }
+  ]
+};
+
+/* ---------- state ---------- */
+function freshState(){
+  return {
+    tasks: JSON.parse(JSON.stringify(SEED_TASKS)),
+    audit: JSON.parse(JSON.stringify(SEED_AUDIT)),
+    session: { aiOnly:0, withGate:0, planChanged:0, retries:0 },
+    seedAuditDone: {}
+  };
+}
+function loadState(){
+  try {
+    var raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      var s = JSON.parse(raw);
+      if (s && s.tasks && s.version === 1) return s;
+    }
+  } catch(e){}
+  var st = freshState();
+  st.version = 1;
+  /* seed per-task audit lines */
+  st.tasks.forEach(function(t){ t.audit = seedAudit(t); });
+  saveState(st);
+  return st;
+}
+function saveState(st){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(st)); } catch(e){}
+}
+var state = loadState();
+
+function nowTime(){
+  var d = new Date();
+  var h = d.getHours(), m = d.getMinutes();
+  var ap = h >= 12 ? "PM" : "AM";
+  h = h % 12; if (h === 0) h = 12;
+  return h + ":" + (m < 10 ? "0"+m : m) + " " + ap;
+}
+function logAudit(taskId, who, what, src, kind){
+  state.audit.push({ t:nowTime(), task:taskId, who:who, what:what, src:src, kind:kind||"" });
+  var t = byId(taskId);
+  if (t) t.audit.push({ t:nowTime(), who:who, what:what, src:src, kind:kind||"" });
+}
+function byId(id){ return state.tasks.find(function(t){ return t.id === id; }); }
+function needsCount(){ return state.tasks.filter(function(t){ return t.status === "needs_approval"; }).length; }
+
+/* ---------- chrome ---------- */
+function updateChrome(){
+  var n = needsCount();
+  var b = $("navBadge");
+  b.textContent = n;
+  b.className = "badge" + (n === 0 ? " zero" : "");
+  document.querySelectorAll(".nav a").forEach(function(a){
+    a.classList.toggle("on", a.getAttribute("href") === location.hash);
+  });
+}
+
+/* ---------- toasts ---------- */
+function toast(msg){
+  var box = $("toasts");
+  var el = document.createElement("div");
+  el.className = "toast";
+  el.innerHTML = ICONS.check + "<span>" + msg + "</span>";
+  box.appendChild(el);
+  setTimeout(function(){ el.style.opacity = "0"; el.style.transition = "opacity .3s"; }, 3200);
+  setTimeout(function(){ el.remove(); }, 3600);
+}
+
+/* ---------- shared render bits ---------- */
+function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function statusLabel(s){
+  return { drafting:"Drafting", needs_approval:"Needs approval", done:"Done", rejected:"Rejected", escalated:"Escalated", processing:"Finalizing…" }[s] || s;
+}
+function statusPill(s){
+  return '<span class="pill st-'+s+'"><span class="dot"></span>'+statusLabel(s)+'</span>';
+}
+function empChip(emp, lg){
+  var e = AI[emp];
+  return '<span class="empchip"><span class="avatar'+(lg?" lg":"")+'" style="background:'+e.color+'">'+e.letter+'</span><span>'+e.name+'<small> · '+e.dept+"</small></span></span>";
+}
+function chanChip(ch){
+  return '<span class="chip">'+ICONS[CHAN_ICON[ch]]+"<span>"+ch+"</span></span>";
+}
+function stepIcon(s){
+  if (s.status === "done")  return '<span class="stepic done">'+ICONS.check+'</span>';
+  if (s.status === "error") return '<span class="stepic error">'+ICONS.alert+'</span>';
+  if (s.status === "current"){
+    if (s.risky) return '<span class="stepic risky" title="Human gate">'+ICONS.lock+'</span>';
+    return '<span class="stepic current">'+ICONS.spark+'</span>';
+  }
+  if (s.status === "waiting") return '<span class="stepic waiting">'+ICONS.circle+'</span>';
+  return '<span class="stepic waiting">'+ICONS.circle+'</span>';
+}
+
+/* ---------- router ---------- */
+function route(){
+  document.body.classList.remove("gate-open");
+  var h = location.hash;
+  if (h.indexOf("#/task/") === 0) renderTask(h.slice(7));
+  else if (h === "#/audit") renderAudit();
+  else if (h === "#/outcomes") renderOutcomes();
+  else renderQueue();
+  updateChrome();
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange", route);
+window.addEventListener("resize", function(){
+  var t = document.querySelector(".taskview");
+  if (!t){ document.body.classList.remove("gate-open"); return; }
+  if (t.classList.contains("has-gate") && window.innerWidth <= 640) document.body.classList.add("gate-open");
+  else document.body.classList.remove("gate-open");
+});
+/* ---------- queue ---------- */
+var filters = { dept:"all", status:"all", atNeeds:false };
+function filterList(){
+  return state.tasks.filter(function(t){
+    if (filters.dept !== "all" && t.dept !== filters.dept) return false;
+    if (filters.status !== "all" && t.status !== filters.status) return false;
+    return true;
+  });
+}
+function renderQueue(){
+  var main = $("main");
+  var n = needsCount();
+  var rows = filterList();
+  var emp = AI;
+
+  var emptyHtml = "";
+  if (rows.length === 0){
+    var h2 = filters.status === "needs_approval" ? "Needs you: 0 — every gate is clear" : "No tasks match these filters";
+    emptyHtml =
+      '<div class="empty"><div class="bigic">'+(filters.status === "needs_approval" ? ICONS.shield : ICONS.funnel)+'</div>'+
+      "<h2>"+h2+"</h2><p>"+(filters.status === "needs_approval"
+        ? "No tasks are paused at a human gate right now. AI employees are handling the rest."
+        : "Try a different department or status filter.")+'</p>'+
+      '<button class="buttonish ghost" type="button" data-act="clearfilters">Clear filters</button></div>';
+  }
+
+  var tbody = rows.map(function(t){
+    var e = emp[t.emp];
+    var attn = t.attention ? ' <span class="attn" title="Needs attention">•</span>' : "";
+    return '<tr data-act="open" data-id="'+t.id+'">'+
+      '<td data-lbl="Task"><span class="qtitle">'+esc(t.request)+' <span class="id">'+t.id+"</span>"+attn+'</span><div class="qsub">'+esc(t.requester)+"</div></td>"+
+      '<td data-lbl="Channel">'+chanChip(t.channel)+"</td>"+
+      '<td data-lbl="AI employee"><span class="agentcell"><span class="avatar" style="background:'+e.color+'">'+e.letter+'</span><span><span class="nm">'+e.name+'</span><br><span class="dp">'+e.dept+"</span></span></span></td>"+
+      '<td data-lbl="Status">'+statusPill(t.status)+"</td>"+
+      '<td data-lbl="Age" class="agecell">'+esc(t.age)+"</td>"+
+      "</tr>";
+  }).join("");
+
+  var needBtn = n > 0
+    ? '<button class="buttonish" type="button" data-act="needsme">Open gates</button>'
+    : '<button class="buttonish" type="button" data-act="clearfilters" disabled>All clear</button>';
+
+  main.innerHTML =
+    '<div class="pagehead">'+
+      "<div><h1>Task queue</h1>"+
+      '<p class="lede">Requests cleared by AI employees across IT, Finance, and HR. Risky steps pause at a human gate — nothing runs without a record.</p></div>'+
+      '<div class="needsyou"><div><div class="num">'+n+'</div></div><div class="lbl">Need'+ (n===1?"s":"") +' you<br>across all teams</div></div>'+
+      (needBtn ? '<div style="display:flex;align-items:center">'+needBtn+'</div>' : "")+
+    "</div>"+
+    '<div class="filters">'+
+      '<select id="fDept" aria-label="Filter by department">'+
+        "<option value='all'"+(filters.dept==="all"?" selected":"")+">All departments</option>"+
+        "<option value='IT'"+(filters.dept==="IT"?" selected":"")+">IT</option>"+
+        "<option value='Finance'"+(filters.dept==="Finance"?" selected":"")+">Finance</option>"+
+        "<option value='HR'"+(filters.dept==="HR"?" selected":"")+">HR</option>"+
+      "</select>"+
+      '<select id="fStatus" aria-label="Filter by status">'+
+        "<option value='all'"+(filters.status==="all"?" selected":"")+">All statuses</option>"+
+        "<option value='drafting'"+(filters.status==="drafting"?" selected":"")+">Drafting</option>"+
+        "<option value='needs_approval'"+(filters.status==="needs_approval"?" selected":"")+">Needs approval</option>"+
+        "<option value='done'"+(filters.status==="done"?" selected":"")+">Done</option>"+
+        "<option value='rejected'"+(filters.status==="rejected"?" selected":"")+">Rejected</option>"+
+        "<option value='escalated'"+(filters.status==="escalated"?" selected":"")+">Escalated</option>"+
+      "</select>"+
+      '<span class="filternote"><b>'+rows.length+"</b> of "+state.tasks.length+" tasks</span>"+
+    "</div>"+
+    (rows.length ? '<div class="scrollbox"><table class="qtable"><thead><tr><th>Task</th><th>Channel</th><th>AI employee</th><th>Status</th><th>Age</th></tr></thead><tbody>'+tbody+"</tbody></table></div>" : emptyHtml);
+
+  $("fDept").addEventListener("change", function(){ filters.dept = this.value; filters.atNeeds = false; renderQueue(); updateChrome(); });
+  $("fStatus").addEventListener("change", function(){ filters.status = this.value; filters.atNeeds = false; renderQueue(); updateChrome(); });
+  main.querySelectorAll("[data-act=open]").forEach(function(tr){
+    tr.addEventListener("click", function(){ location.hash = "#/task/"+tr.getAttribute("data-id"); });
+  });
+  var nb = main.querySelector("[data-act=needsme]");
+  if (nb) nb.addEventListener("click", function(){
+    filters.dept = "all"; filters.status = "needs_approval"; filters.atNeeds = true; renderQueue(); updateChrome();
+  });
+  var cf = main.querySelector("[data-act=clearfilters]");
+  if (cf) cf.addEventListener("click", function(){ filters.dept="all"; filters.status="all"; filters.atNeeds=false; renderQueue(); updateChrome(); });
+}
+
+function planHtml(t){
+  var lis = t.plan.map(function(s){
+    var tag = "";
+    if (s.risky) tag = '<span class="steptag risky">Lock · human gate</span>';
+    else if (s.status === "done") tag = '<span class="steptag">'+esc(s.src)+"</span>";
+    else if (s.status === "current") tag = '<span class="steptag">'+esc(s.src)+"</span>";
+    else if (s.status === "waiting") tag = '<span class="steptag">'+esc(s.src)+"</span>";
+    var flag = s.flag ? '<div class="flagline">'+ICONS.alert+"<span>"+esc(s.flag)+"</span></div>" : "";
+    var err = s.status === "error" && t.id === "T-1071"
+      ? '<div class="errbox" style="margin-top:10px"><h3>'+ICONS.alert+"Identity system did not respond</h3>"+
+        "<p>Ava tried twice; the Identity system timed out both times. The request is still queued safely — nothing was changed.</p>"+
+        '<button class="buttonish" type="button" data-act="retry">'+ICONS.retry+" Retry now</button></div>" : "";
+    var res = "";
+    if (s.status === "done") res = '<div class="sn">'+(s.risky ? "Human-approved · approved at gate" : "Result: OK")+" · source: "+esc(s.src)+"</div>";
+    else if (s.status === "waiting" && s.risky) res = '<div class="sn">Waits for the human gate above</div>';
+    else if (s.status === "current" && s.risky) res = '<div class="sn">Stopped here — needs your decision</div>';
+    return "<li>"+stepIcon(s)+'<div class="stepmain"><div class="sl">'+esc(s.label)+" "+tag+"</div>"+res+flag+err+"</div></li>";
+  }).join("");
+  return '<ul class="plan">'+lis+"</ul>";
+}
+
+function editFieldsHtml(gate){
+  return gate.fields.map(function(f){
+    if (f.type === "select"){
+      var opts = f.options.map(function(o){ return "<option value='"+o[0]+"'"+ (String(o[0])===String(f.value)?" selected":"") +">"+esc(o[1])+"</option>"; }).join("");
+      var isRec = String(f.value) === String(f.rec);
+      return '<div class="field"><label for="fld_'+f.key+'">'+esc(f.label)+'</label>'+
+        '<select id="fld_'+f.key+'">'+opts+"</select>"+
+        '<div class="hint">'+(isRec ? "This matches the AI employee's recommendation." : "You changed this — the audit trail will record the difference.")+"</div></div>";
+    }
+    if (f.type === "toggle"){
+      return '<div class="field"><button type="button" class="switchrow" id="fld_'+f.key+'" role="switch" aria-pressed="'+(f.value?"true":"false")+'">'+
+        '<span class="sw"><span class="knob"></span></span>'+
+        '<span><span class="swl">'+esc(f.label)+'</span><br><span class="sws">Change notice sent to the finance lead when on.</span></span></button></div>';
+    }
+    return "";
+  }).join("");
+}
+
+function changedSummary(gate){
+  var parts = gate.fields.filter(function(f){ return String(f.value) !== String(f.rec); }).map(function(f){
+    if (f.type === "toggle") return f.label;
+    var cur = (f.options.find(function(o){ return String(o[0])===String(f.value); })||[])[1] || "";
+    var was = (f.options.find(function(o){ return String(o[0])===String(f.rec); })||[])[1] || "";
+    return f.label.replace(/:$/, "")+": "+was.replace(" — AI recommendation","").replace("AI recommendation","")+" → "+cur.replace(" — AI recommendation","");
+  });
+  return parts.join("; ");
+}
+
+function gateHtml(t){
+  var g = t.gate;
+  var edited = g.edited;
+  return '<div class="gate" role="dialog" aria-label="Human gate for '+esc(t.id)+'">'+
+    '<div class="ghead"><h2>Human gate</h2><span class="policy">'+esc(g.policy)+'</span></div>'+
+    '<p class="gsub">The AI employee paused before the risky step. It waits until you decide.</p>'+
+    '<div class="grow what"><span class="ic">'+ICONS.bolt+"</span><span><b>What "+esc(AI[t.emp].name)+" wants to do</b>"+esc(g.what)+"</span></div>"+
+    '<div class="grow risk"><span class="ic">'+ICONS.lock+"</span><span><b>Why it stopped</b>"+esc(g.why)+"</span></div>"+
+    '<div class="grow rec"><span class="ic">'+ICONS.check+"</span><span><b>Recommendation</b>"+esc(g.rec)+"</span></div>"+
+    (edited ? '<div class="editedchip">'+ICONS.pencil+"You changed the plan: "+esc(changedSummary(g))+"</div>" : "")+
+    '<div class="editsheet" id="editSheet" hidden>'+
+      "<h3>Edit before approving</h3>"+editFieldsHtml(g)+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap"><button class="buttonish" type="button" data-act="saveedit">Save changes</button>'+
+      '<button class="buttonish ghost" type="button" data-act="canceledit">Cancel</button></div>'+
+    "</div>"+
+    '<div class="editsheet" id="rejectSheet" hidden>'+
+      "<h3>Reject with a reason</h3>"+
+      '<textarea class="reason" id="rejectReason" placeholder="Why is this rejected? This goes on the audit trail and into the draft reply.">'+
+        ((t.id === "T-1133") ? "Duplicate of INV-2207" : "")+"</textarea>"+
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">'+
+      '<button class="buttonish danger" type="button" data-act="confirmreject">Confirm rejection</button>'+
+      '<button class="buttonish ghost" type="button" data-act="cancelreject">Cancel</button></div>'+
+    "</div>"+
+    '<div class="gatebtns">'+
+      '<button class="buttonish" type="button" data-act="approve">'+ICONS.check+" Approve — "+esc(approveLabel(g))+"</button>"+
+      '<button class="buttonish ghost" type="button" data-act="edit">'+ICONS.pencil+" Edit</button>"+
+      '<button class="buttonish danger" type="button" data-act="reject">'+ICONS.ban+" Reject</button>"+
+    "</div></div>";
+}
+function approveLabel(g){
+  var f = g.fields[0];
+  if (!f) return "continue";
+  if (f.type === "toggle") return "update account";
+  var cur = (f.options.find(function(o){ return String(o[0])===String(f.value); })||[])[1] || "";
+  cur = cur.replace(" — AI recommendation","").replace("AI recommendation","");
+  var low = cur.charAt(0).toLowerCase()+cur.slice(1);
+  return low;
+}
+
+function outcomeHtml(t){
+  if (t.status === "done" || t.status === "processing"){
+    var r = t.reply;
+    var inProg = t.status === "processing" ? '<div class="workingnow" style="margin-bottom:10px">'+ICONS.spark+"<span><b>"+esc(AI[t.emp].name)+"</b> is finishing the remaining steps…</span></div>" : "";
+    return '<div class="outcome">'+inProg+
+      '<div class="donebox">'+ICONS.check+"<span>Task complete — "+esc(AI[t.emp].name)+" finished the remaining steps after your approval.</span></div>"+
+      '<div class="slackreply"><div class="srhead"><span class="avatar" style="background:'+AI[t.emp].color+'">'+AI[t.emp].letter+'</span>'+
+        "<span><b>"+esc(AI[t.emp].name)+"</b><span class='ch'> · "+esc(AI[t.emp].dept)+" · reply prepared for "+esc(r.ch)+"</span></span></div>"+
+        '<div class="srbody">"'+(r.ok ? "" : '<span class="ok">')+esc(r.text)+(r.ok ? "" : "</span>")+'"</div>'+
+        (r.ok ? "" : '<div class="drafttag">'+ICONS.doc+" Draft reply — not sent. Shown for review.</div>")+
+      "</div></div>";
+  }
+  if (t.status === "rejected"){
+    return '<div class="outcome">'+
+      '<div class="rejbox">'+ICONS.ban+"<span>Rejected"+(t.rejectReason ? " — "+esc(t.rejectReason) : "")+". "+esc(AI[t.emp].name)+" took no action.</span></div>"+
+      (t.reply ? '<div class="slackreply"><div class="srhead"><span class="avatar" style="background:'+AI[t.emp].color+'">'+AI[t.emp].letter+'</span>'+
+        "<span><b>"+esc(AI[t.emp].name)+"</b><span class='ch'> · "+esc(AI[t.emp].dept)+" · draft for "+esc(t.reply.ch)+"</span></span></div>"+
+        '<div class="srbody">"'+esc(t.reply.text)+'"</div>'+
+        '<div class="drafttag">'+ICONS.doc+" Draft reply — not sent. Shown for review.</div></div>" : "")+
+      "</div>";
+  }
+  if (t.status === "escalated"){
+    return '<div class="outcome"><div class="rejbox" style="background:var(--blue-bg);border-color:var(--blue-line);color:var(--blue)">'+ICONS.shield+"<span>Escalated — "+esc(t.escalation||"")+"</span></div></div>";
+  }
+  return "";
+}
+
+function taskAuditHtml(t){
+  var lis = (t.audit||[]).map(function(a){
+    var k = a.kind === "gate" ? "ah" : a.kind === "aa" ? "aa" : a.kind === "reject" ? "ar" : "";
+    return '<li><span class="at">'+esc(a.t)+'</span><span class="aw">'+esc(a.who)+'</span><span class="ax">'+esc(a.what)+"</span><span class='as'>"+esc(a.src||"")+"</span></li>";
+  }).join("");
+  return '<div class="card"><div class="cardhead"><h2>Audit trail — this task</h2></div><ul class="auditlist">'+lis+"</ul></div>";
+}
+
+function renderTask(id){
+  var t = byId(id);
+  var main = $("main");
+  if (!t){
+    main.innerHTML = '<div class="empty"><div class="bigic">'+ICONS.shield+'</div><h2>Task not found</h2><p><a href="#/queue">Back to the queue</a></p></div>';
+    return;
+  }
+  var emp = AI[t.emp];
+  var rightCol;
+  if (t.status === "needs_approval" && t.gate){
+    rightCol = gateHtml(t);
+  } else if (t.status === "done" || t.status === "processing" || t.status === "rejected" || t.status === "escalated"){
+    rightCol = outcomeHtml(t);
+  } else {
+    rightCol = '<div class="card"><div class="cardhead"><h2>In progress</h2></div>'+
+      '<div class="workingnow">'+ICONS.spark+"<span><b>"+esc(emp.name)+"</b> ("+esc(emp.dept)+") is working on this. Plan steps appear here as they complete — risky steps will pause for you.</span></div></div>";
+  }
+
+  var attnBar = t.attention && t.status !== "done"
+    ? '<div class="attnbar">'+ICONS.alert+"<span>Needs attention — a system check failed. Retry is available below.</span></div>" : "";
+
+  main.innerHTML =
+    '<div class="taskview'+(t.gate && t.status==="needs_approval" ? " has-gate":"")+'">'+
+    '<a class="backlink" href="#/queue">'+ICONS.back+" Back to queue</a>"+
+    '<div class="tvhead"><div class="row1">'+statusPill(t.status)+"<h1>"+esc(t.request)+"</h1></div>"+
+    '<div class="tvmeta">'+chanChip(t.channel)+'<span class="sep">·</span><span>'+esc(t.requester)+'</span><span class="sep">·</span><span>'+esc(t.age)+" in queue</span></div>"+
+    attnBar+"</div>"+
+    '<div class="tv-grid">'+
+      '<div>'+
+        '<div class="card"><div class="cardhead"><h2>Original request</h2></div>'+
+        '<div class="requestbox"><div class="q">'+esc(t.quote||t.request)+'</div><div class="src">via '+esc(t.channel)+" · "+esc(t.requester)+"</div></div>"+
+        '<div class="workingstrip"><span class="pulse"></span><span><b>'+esc(emp.name)+"</b> · "+esc(emp.dept)+" · working on this request</span>"+empChip(t.emp)+"</div>"+
+        "</div>"+
+        '<div class="card" style="margin-top:16px"><div class="cardhead"><h2>Plan — '+t.plan.length+' step'+(t.plan.length===1?"":"s")+'</h2><span class="chip">'+esc(emp.name)+" drafted this</span></div>"+planHtml(t)+"</div>"+
+      "</div>"+
+      '<div class="gatewrap">'+rightCol+"</div>"+
+    "</div>"+
+    '<div style="margin-top:16px">'+taskAuditHtml(t)+"</div></div>";
+
+  /* scroll lock for phone bottom sheet */
+  var tv = main.querySelector(".taskview");
+  if (tv){
+    tv.classList.toggle("gate-open", tv.classList.contains("has-gate") && window.innerWidth <= 640);
+    if (tv.classList.contains("has-gate")){
+      document.body.classList.add("gate-open");
+    } else {
+      document.body.classList.remove("gate-open");
+    }
+  }
+
+  /* bind */
+  var g = main.querySelector(".gate");
+  if (g){
+    g.querySelector("[data-act=approve]").addEventListener("click", function(){ approveTask(t.id); });
+    g.querySelector("[data-act=edit]").addEventListener("click", function(){
+      $("editSheet").hidden = false; $("rejectSheet").hidden = true;
+      var sw = $("editSheet").querySelector(".switchrow");
+      if (sw) sw.addEventListener("click", function(){
+        var on = sw.getAttribute("aria-pressed") === "true";
+        sw.setAttribute("aria-pressed", on ? "false" : "true");
+      });
+    });
+    g.querySelector("[data-act=canceledit]").addEventListener("click", function(){ $("editSheet").hidden = true; });
+    g.querySelector("[data-act=saveedit]").addEventListener("click", function(){ saveEdit(t.id); });
+    g.querySelector("[data-act=reject]").addEventListener("click", function(){
+      $("rejectSheet").hidden = false; $("editSheet").hidden = true;
+    });
+    g.querySelector("[data-act=cancelreject]").addEventListener("click", function(){ $("rejectSheet").hidden = true; });
+    g.querySelector("[data-act=confirmreject]").addEventListener("click", function(){ rejectTask(t.id, $("rejectReason").value.trim()); });
+  }
+  var retry = main.querySelector("[data-act=retry]");
+  if (retry) retry.addEventListener("click", function(){ retryError(t.id); });
+}
+
+/* ---------- gate actions ---------- */
+function saveEdit(taskId){
+  var t = byId(taskId);
+  t.gate.fields.forEach(function(f){
+    var el = $("fld_"+f.key);
+    if (!el) return;
+    if (f.type === "toggle"){
+      f.value = el.getAttribute("aria-pressed") === "true";
+    } else {
+      f.value = f.type === "select" ? el.value : el.value;
+      if (f.type === "select" && f.options.every(function(o){ return String(o[0]) !== String(f.value); })) f.value = f.rec;
+    }
+  });
+  var changed = t.gate.fields.some(function(f){ return String(f.value) !== String(f.rec); });
+  if (changed) t.gate.edited = true;
+  saveState(state);
+  renderTask(taskId);
+  updateChrome();
+  toast("Plan updated — the audit will record your change");
+}
+function approveTask(taskId){
+  var t = byId(taskId);
+  if (t.status !== "needs_approval") return;
+  var emp = AI[t.emp];
+  var edited = t.gate.edited || t.gate.fields.some(function(f){ return String(f.value) !== String(f.rec); });
+  state.session.withGate++;
+  if (edited) state.session.planChanged++;
+  logAudit(taskId, "You", "Approved the gate"+(edited ? " with plan edits — "+changedSummary(t.gate) : " as recommended by "+emp.name), "Human gate", "gate");
+  if (edited){
+    logAudit(taskId, emp.name, "Noted plan change by approver and proceeding", "Workbench", "");
+  }
+  /* make the outbound reply reflect what was actually approved */
+  var dField = t.gate.fields.find(function(f){ return f.type === "select" && (f.key === "expiryDays" || f.key === "duration" || f.key === "days"); });
+  if (dField){
+    var days = parseInt(dField.value, 10);
+    if (!isNaN(days) && t.reply && t.reply.text){
+      t.reply.text = t.reply.text.replace(/\d+ days?/g, days + (days === 1 ? " day" : " days"));
+    }
+  }
+  /* mark risky current step done, then finish remaining */
+  /* mark risky current step done, then finish remaining */
+  var idx = t.plan.findIndex(function(s){ return s.status === "current"; });
+  if (idx >= 0){
+    t.plan[idx].status = "done";
+    t.plan[idx].note = t.plan[idx].note || "Approved at gate";
+  }
+  saveState(state);
+  renderTask(taskId);
+  var i = idx + 1;
+  var tick = function(){
+    while (i < t.plan.length){
+      var s = t.plan[i];
+      s.status = "done";
+      s.note = s.note || "Finished after approval";
+      logAudit(taskId, emp.name, "Finished: "+s.label, s.src, "");
+      i++;
+      saveState(state);
+      renderTask(taskId);
+      updateChrome();
+      if (i < t.plan.length) return setTimeout(tick, 700);
+      break;
+    }
+    /* done */
+    t.reply.sent = true;
+    t.reply.ch = t.reply.ch || "Slack";
+    t.status = "done";
+    t.attention = false;
+    saveState(state);
+    document.body.classList.remove("gate-open");
+    renderTask(taskId);
+    updateChrome();
+    toast(t.id+" closed — "+emp.name+" sent the reply");
+  };
+  setTimeout(tick, 700);
+}
+function rejectTask(taskId, reason){
+  var t = byId(taskId);
+  if (!t || t.status !== "needs_approval") return;
+  var emp = AI[t.emp];
+  state.session.withGate++;
+  t.status = "rejected";
+  t.rejectReason = reason || "Rejected at gate";
+  logAudit(taskId, "You", "Rejected the gate"+(reason ? " — "+reason : ""), "Human gate", "reject");
+  if (t.reply){
+    t.reply.sent = false;
+    if (reason && t.id === "T-1133" && reason.indexOf("INV-2207") !== -1){
+      t.reply.text = "Thanks — we're holding INV-2208; it appears to duplicate INV-2207 already on file. Please confirm and we'll re-submit.";
+    }
+  }
+  saveState(state);
+  document.body.classList.remove("gate-open");
+  renderTask(taskId);
+  updateChrome();
+  toast(t.id+" rejected — nothing was changed");
+}
+function retryError(taskId){
+  var t = byId(taskId);
+  if (!t || t.status !== "drafting") return;
+  var emp = AI[t.emp];
+  var btn = document.querySelector("[data-act=retry]");
+  if (btn){ btn.disabled = true; btn.textContent = "Retrying…"; }
+  state.session.retries++;
+  logAudit(taskId, emp.name, "Retried after system timeout — succeeded on 3rd attempt", "Identity system", "");
+  setTimeout(function(){
+    /* mark error step done then finish rest */
+    t.plan.forEach(function(s){ if (s.status === "error"){ s.status = "done"; s.note = "Succeeded after retry"; } });
+    saveState(state);
+    renderTask(taskId);
+    var i = t.plan.findIndex(function(s){ return s.status === "waiting"; });
+    if (i < 0){ i = t.plan.length; }
+    var tick = function(){
+      while (i < t.plan.length){
+        var s = t.plan[i];
+        s.status = "done";
+        s.note = s.note || "Finished";
+        logAudit(taskId, emp.name, "Finished: "+s.label, s.src, "");
+        i++;
+        saveState(state);
+        renderTask(taskId);
+        if (i < t.plan.length) return setTimeout(tick, 700);
+        break;
+      }
+      state.session.aiOnly++;
+      t.status = "done";
+      t.attention = false;
+      saveState(state);
+      renderTask(taskId);
+      updateChrome();
+      toast(t.id+" closed automatically after retry");
+    };
+    setTimeout(tick, 600);
+  }, 1200);
+}
+
+/* ---------- audit view ---------- */
+function auditRows(){
+  return state.audit.slice().reverse();
+}
+function csvText(){
+  var rows = [["Time","Task","Actor","Action","Source","Kind"]];
+  auditRows().forEach(function(a){
+    rows.push([a.t, a.task, a.who, a.what, a.src||"", a.kind||""]);
+  });
+  return rows.map(function(r){
+    return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(",");
+  }).join("\n");
+}
+function renderAudit(){
+  var main = $("main");
+  var rows = auditRows();
+  var body = rows.map(function(a){
+    var k = a.kind === "gate" ? '<span class="pill st-needs" style="padding:2px 8px;font-size:11.5px">Gate</span>'
+      : a.kind === "aa" ? '<span class="pill st-escalated" style="padding:2px 8px;font-size:11.5px">Attention</span>'
+      : a.kind === "reject" ? '<span class="pill st-rejected" style="padding:2px 8px;font-size:11.5px">Rejected</span>'
+      : "";
+    return "<tr><td>"+esc(a.t)+"</td><td><b>"+esc(a.task)+"</b></td><td>"+esc(a.who)+"</td><td>"+esc(a.what)+"</td><td>"+esc(a.src||"")+"</td><td>"+k+"</td></tr>";
+  }).join("");
+  main.innerHTML =
+    '<div class="pagehead"><div><h1>Audit trail</h1>'+
+    '<p class="lede">Every step, every source check, and every human decision — exported in one file. Nothing an AI employee does is off the record.</p></div>'+
+    '<button class="buttonish" type="button" id="csvBtn">'+ICONS.download+" Export CSV</button></div>"+
+    '<div class="scrollbox"><table class="atable"><thead><tr><th>Time</th><th>Task</th><th>Actor</th><th>Action</th><th>Source</th><th>Kind</th></tr></thead><tbody>'+body+"</tbody></table></div>"+
+    '<p style="color:var(--muted);font-size:13.5px;margin-top:10px">'+rows.length+" records · CSV is generated in your browser — nothing is uploaded.</p>";
+  $("csvBtn").addEventListener("click", function(){
+    var blob = new Blob([csvText()], {type:"text/csv;charset=utf-8"});
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "gatekeeper-workbench-audit.csv";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1500);
+    toast("Audit CSV downloaded ("+state.audit.length+" records)");
+  });
+}
+
+/* ---------- outcomes ---------- */
+function renderOutcomes(){
+  var main = $("main");
+  var s = state.session;
+  var ai = BASELINE.aiOnly + s.aiOnly;
+  var wg = BASELINE.withGate + s.withGate;
+  var pc = BASELINE.planChanged + s.planChanged;
+  var maxR = Math.max.apply(null, BASELINE.reasons.map(function(r){ return r.count; }));
+  var bars = BASELINE.reasons.map(function(r){
+    var pct = Math.round(r.count / maxR * 100);
+    return '<div class="bar"><span class="nm">'+esc(r.name)+'</span><span class="track"><span class="fill" style="width:'+pct+'%"></span></span><span class="ct">'+r.count+"</span></div>";
+  }).join("");
+  main.innerHTML =
+    '<div class="pagehead"><div><h1>Outcomes</h1>'+
+    '<p class="lede">What the workbench cleared, and where a human had to own the risky step. Baselines are synthetic; this session updates them live.</p></div></div>'+
+    '<div class="kpis">'+
+      '<div class="kpi green"><span class="kic">'+ICONS.bolt+'</span><div class="kv">'+ai+'</div><div class="kl">Tasks closed by AI alone</div></div>'+
+      '<div class="kpi amber"><span class="kic">'+ICONS.lock+'</span><div class="kv">'+wg+'</div><div class="kl">Tasks closed with a human gate</div></div>'+
+      '<div class="kpi blue"><span class="kic">'+ICONS.clock+'</span><div class="kv">'+BASELINE.avgClose+'</div><div class="kl">Average time to close</div></div>'+
+      '<div class="kpi"><span class="kic" style="background:var(--slate-bg);color:var(--ink-2)">'+ICONS.pencil+'</span><div class="kv">'+pc+'</div><div class="kl">Plans edited by a human</div></div>'+
+    "</div>"+
+    '<div class="sessionstrip">'+
+      "<span>This session: <b>"+s.aiOnly+"</b> AI-only close"+(s.aiOnly===1?"":"s")+"</span>"+
+      "<span><b>"+s.withGate+"</b> gate decision"+(s.withGate===1?"":"s")+"</span>"+
+      "<span><b>"+s.planChanged+"</b> plan edit"+(s.planChanged===1?"":"s")+" by a human</span>"+
+      (s.retries ? "<span><b>"+s.retries+"</b> system retr"+(s.retries===1?"y":"ies")+"</span>" : "")+
+    "</div>"+
+    '<div class="card gatereasons"><div class="cardhead"><h2>Top gate reasons</h2></div>'+bars+"</div>";
+}
+
+/* ---------- reset ---------- */
+function resetDemo(){
+  try { localStorage.removeItem(STORE_KEY); } catch(e){}
+  state = freshState();
+  state.version = 1;
+  state.tasks.forEach(function(t){ t.audit = seedAudit(t); });
+  saveState(state);
+  filters = { dept:"all", status:"all", atNeeds:false };
+  if (location.hash !== "#/queue") location.hash = "#/queue";
+  else route();
+  document.body.classList.remove("gate-open");
+  toast("Demo reset — fresh Cobalt Freight tenant");
+}
+$("resetBtn").addEventListener("click", resetDemo);
+
+/* ---------- init ---------- */
+document.addEventListener("DOMContentLoaded", function(){
+  if (!location.hash) location.replace("#/queue");
+  route();
+});
+})();
+</script>
+</body>
+</html>
